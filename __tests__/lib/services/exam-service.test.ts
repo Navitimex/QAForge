@@ -54,6 +54,10 @@ describe('countScorableQuestions', () => {
     const questions = [{ type: 'multiple' }, { type: 'true_false' }, { type: 'multiple' }]
     expect(countScorableQuestions(questions)).toBe(3)
   })
+
+  it('excludes code exercises from the score', () => {
+    expect(countScorableQuestions([{ type: 'code' }, { type: 'multiple' }])).toBe(1)
+  })
 })
 
 // ── buildQuestionFilter ───────────────────────────────────────────────────
@@ -78,5 +82,18 @@ describe('buildQuestionFilter', () => {
   it('omits the difficulty key when set to "mixed"', () => {
     const f = buildQuestionFilter(['t1'], 'mixed')
     expect(Object.prototype.hasOwnProperty.call(f, 'difficulty')).toBe(false)
+  })
+
+  it('interview mode filters to open questions only', () => {
+    expect(buildQuestionFilter(['t1'], 'mixed', 'interview').type).toBe('open')
+  })
+
+  it('code mode filters to code exercises only', () => {
+    expect(buildQuestionFilter(['t1'], 'mixed', 'code').type).toBe('code')
+  })
+
+  it('practice/exam modes exclude code exercises', () => {
+    expect(buildQuestionFilter(['t1'], 'mixed', 'practice').type).toEqual({ $in: ['multiple', 'true_false', 'open'] })
+    expect(buildQuestionFilter(['t1'], 'mixed', 'exam').type).toEqual({ $in: ['multiple', 'true_false', 'open'] })
   })
 })

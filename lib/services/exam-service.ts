@@ -5,15 +5,23 @@
  * No database or HTTP dependencies — fully unit-testable.
  */
 
-import type { ExamDifficulty } from '@/types'
+import type { ExamDifficulty, ExamMode } from '@/types'
+
+/** Question types that count toward the numeric score. */
+export const SCORABLE_TYPES = ['multiple', 'true_false'] as const
 
 /**
  * Builds a MongoDB query filter for question selection.
- * When difficulty is 'mixed', all difficulty levels are included.
+ *
+ * - difficulty 'mixed' → all difficulty levels
+ * - mode 'interview'   → open questions only (spoken-answer practice)
+ * - mode 'code'        → coding exercises only
+ * - mode exam/practice → regular question types (code exercises excluded)
  */
 export function buildQuestionFilter(
   topicIds: string[],
-  difficulty: ExamDifficulty
+  difficulty: ExamDifficulty,
+  mode: ExamMode = 'practice'
 ): Record<string, unknown> {
   const filter: Record<string, unknown> = {
     topicId:  { $in: topicIds },
@@ -21,6 +29,13 @@ export function buildQuestionFilter(
   }
   if (difficulty !== 'mixed') {
     filter.difficulty = difficulty
+  }
+  if (mode === 'interview') {
+    filter.type = 'open'
+  } else if (mode === 'code') {
+    filter.type = 'code'
+  } else {
+    filter.type = { $in: ['multiple', 'true_false', 'open'] }
   }
   return filter
 }
@@ -44,8 +59,8 @@ export function buildExamTitle(topicNames: string[]): string {
 
 /**
  * Counts questions that contribute to the score.
- * Open questions are excluded — they are self-rated and not automatically evaluable.
+ * Open questions and code exercises are excluded — they are self-rated.
  */
 export function countScorableQuestions<T extends { type: string }>(questions: T[]): number {
-  return questions.filter(q => q.type !== 'open').length
+  return questions.filter(q => (SCORABLE_TYPES as readonly string[]).includes(q.type)).length
 }

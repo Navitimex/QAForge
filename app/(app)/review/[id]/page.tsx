@@ -90,7 +90,7 @@ export default async function ReviewPage({ params }: Props) {
       <div className="flex flex-col gap-3">
         {orderedQA.map(({ q, a }, i) => {
           if (!q) return null
-          const isOpen      = q.type === 'open'
+          const isOpen      = q.type === 'open' || q.type === 'code'
           const isCorrect   = isOpen ? a?.selfRating === 'knew'   : a?.isCorrect === true
           const isWrong     = isOpen ? a?.selfRating === 'missed' : a?.isCorrect === false
           const statusColor = a?.skipped ? 'var(--text-3)' : isCorrect ? scoreColor(100) : isWrong ? scoreColor(0) : scoreColor(55)
@@ -148,6 +148,20 @@ export default async function ReviewPage({ params }: Props) {
                 {isOpen && a?.selfRating && (
                   <div className="mb-3">
                     <Badge color={statusColor}>Self-rated: {a.selfRating}</Badge>
+                  </div>
+                )}
+
+                {/* Code exercise: snippet + solution */}
+                {q.code && (
+                  <div className="mb-3">
+                    <p className="text-[11px] font-bold text-text-3 uppercase tracking-[0.08em] mb-[6px]">Exercise code</p>
+                    <pre className="bg-surface border border-border rounded-lg p-3 overflow-x-auto text-[12.5px] leading-[1.6] text-text font-mono whitespace-pre m-0">{q.code}</pre>
+                  </div>
+                )}
+                {q.type === 'code' && q.solutionCode && (
+                  <div className="mb-3">
+                    <p className="text-[11px] font-bold text-text-3 uppercase tracking-[0.08em] mb-[6px]">Solution</p>
+                    <pre className="bg-surface border border-border rounded-lg p-3 overflow-x-auto text-[12.5px] leading-[1.6] text-text font-mono whitespace-pre m-0">{q.solutionCode}</pre>
                   </div>
                 )}
 

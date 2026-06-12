@@ -76,7 +76,7 @@ export async function POST(req: Request) {
     const userId = session.user.id
 
     // Build question filter
-    const qFilter = buildQuestionFilter(topicIds, difficulty)
+    const qFilter = buildQuestionFilter(topicIds, difficulty, mode)
 
     // Fetch candidate questions and user stats in parallel
     const [candidates, userStats, topics] = await Promise.all([

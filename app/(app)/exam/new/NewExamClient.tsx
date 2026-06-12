@@ -1,19 +1,35 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
+import { Zap, GraduationCap, Mic, Code2 } from 'lucide-react'
+import type { LucideIcon } from 'lucide-react'
 import Button from '@/components/ui/Button'
 import SectionLabel from '@/components/ui/SectionLabel'
 import Chip from '@/components/ui/Chip'
 import ToggleGroup from '@/components/ui/ToggleGroup'
-import type { ITopic } from '@/types'
+import { cn } from '@/lib/cn'
+import type { ITopic, ApiResponse } from '@/types'
 
 const DIFFICULTIES = ['easy', 'medium', 'hard', 'mixed'] as const
-const MODES        = ['practice', 'exam'] as const
 const COUNTS       = [5, 10, 15, 20, 30] as const
 
 type Difficulty = typeof DIFFICULTIES[number]
-type Mode       = typeof MODES[number]
+type Mode       = 'practice' | 'exam' | 'interview' | 'code'
+
+interface ModeOption {
+  id: Mode
+  label: string
+  description: string
+  icon: LucideIcon
+}
+
+const MODES: ModeOption[] = [
+  { id: 'practice',  label: 'Practice',  description: 'Instant feedback after each answer',           icon: Zap },
+  { id: 'exam',      label: 'Exam',      description: 'Answers hidden until you finish',              icon: GraduationCap },
+  { id: 'interview', label: 'Interview', description: 'Answer out loud, then reveal & self-rate',     icon: Mic },
+  { id: 'code',      label: 'Code',      description: 'Coding exercises with a hidden solution',      icon: Code2 },
+]
 
 interface Props {
   topics: ITopic[]
@@ -25,6 +41,7 @@ export default function NewExamClient({ topics }: Props) {
   const [difficulty, setDifficulty]         = useState<Difficulty>('mixed')
   const [mode, setMode]                     = useState<Mode>('practice')
   const [count, setCount]                   = useState(10)
+  const [available, setAvailable]           = useState<number | null>(null)
   const [loading, setLoading]               = useState(false)
   const [error, setError]                   = useState('')
 
@@ -35,6 +52,27 @@ export default function NewExamClient({ topics }: Props) {
   function toggleAll() {
     setSelectedTopics(p => p.length === topics.length ? [] : topics.map(t => String(t._id)))
   }
+
+  // Live availability for the current selection
+  useEffect(() => {
+    if (selectedTopics.length === 0) { setAvailable(null); return }
+    let cancelled = false
+    const params = new URLSearchParams({
+      topicIds: selectedTopics.join(','),
+      difficulty,
+      mode,
+    })
+    fetch(`/api/questions/availability?${params}`)
+      .then(r => r.json())
+      .then((json: ApiResponse<{ count: number }>) => {
+        if (!cancelled && json.success) setAvailable(json.data.count)
+      })
+      .catch(() => { if (!cancelled) setAvailable(null) })
+    return () => { cancelled = true }
+  }, [selectedTopics, difficulty, mode])
+
+  const effectiveCount = available !== null ? Math.min(count, available) : count
+  const noQuestions    = available === 0
 
   async function handleCreate() {
     if (selectedTopics.length === 0) { setError('Select at least one topic'); return }
@@ -56,10 +94,44 @@ export default function NewExamClient({ topics }: Props) {
   }
 
   return (
-    <div className="px-6 py-7 max-w-[600px] mx-auto w-full">
+    <div className="px-6 py-7 max-w-[620px] mx-auto w-full">
       <div className="mb-7">
         <h1 className="text-[22px] font-bold font-display text-text mb-1 tracking-[-0.02em]">New Exam</h1>
-        <p className="text-sm text-text-3">Configure and start a practice session.</p>
+        <p className="text-sm text-text-3">Configure and start a study session.</p>
+      </div>
+
+      {/* Mode */}
+      <div className="mb-6">
+        <SectionLabel>Mode</SectionLabel>
+        <div className="grid grid-cols-2 gap-2">
+          {MODES.map(({ id, label, description, icon: Icon }) => {
+            const active = mode === id
+            return (
+              <button
+                key={id}
+                onClick={() => setMode(id)}
+                className={cn(
+                  'text-left p-[12px_14px] rounded-xl border cursor-pointer font-[inherit]',
+                  'transition-all duration-[120ms]',
+                  active
+                    ? 'border-accent bg-accent/[0.08]'
+                    : 'border-border bg-card',
+                )}
+              >
+                <div className="flex items-center gap-[7px] mb-1">
+                  <Icon size={14} className={active ? 'text-accent' : 'text-text-3'} />
+                  <span className={cn('text-[13px] font-semibold', active ? 'text-accent' : 'text-text')}>{label}</span>
+                </div>
+                <p className="text-[11px] text-text-3 leading-[1.45] m-0">{description}</p>
+              </button>
+            )
+          })}
+        </div>
+        {mode === 'code' && (
+          <p className="text-xs text-text-3 mt-2">
+            Code exercises are available for topics like Java, Playwright, Postman and SQL.
+          </p>
+        )}
       </div>
 
       {/* Topics */}
@@ -95,27 +167,33 @@ export default function NewExamClient({ topics }: Props) {
         />
       </div>
 
-      {/* Mode */}
-      <div className="mb-6">
-        <SectionLabel>Mode</SectionLabel>
-        <ToggleGroup
-          options={MODES.map(m => ({ id: m, label: m[0].toUpperCase() + m.slice(1) }))}
-          value={mode}
-          onChange={v => setMode(v as Mode)}
-        />
-        <p className="text-xs text-text-3 mt-2">
-          {mode === 'practice' ? 'See correct answers immediately after each question.' : 'Answers revealed only after completing the exam.'}
-        </p>
-      </div>
-
       {/* Question count */}
       <div className="mb-8">
-        <SectionLabel>Questions — {count}</SectionLabel>
+        <div className="flex justify-between items-center mb-3">
+          <SectionLabel className="mb-0">Questions</SectionLabel>
+          {available !== null && (
+            <span
+              className="text-[11px] font-semibold"
+              style={{ color: noQuestions ? 'hsl(0, 75%, 57%)' : 'var(--text-3)' }}
+            >
+              {available} available
+            </span>
+          )}
+        </div>
         <ToggleGroup
-          options={COUNTS.map(n => ({ id: String(n), label: String(n) }))}
-          value={String(count)}
+          options={COUNTS.map(n => ({
+            id: String(n),
+            label: String(n),
+            disabled: available !== null && available > 0 && n > available,
+          }))}
+          value={String(effectiveCount === count ? count : effectiveCount)}
           onChange={v => setCount(Number(v))}
         />
+        {available !== null && available > 0 && available < count && (
+          <p className="text-xs text-text-3 mt-2">
+            Only {available} question{available !== 1 ? 's' : ''} match this selection — the exam will use all of them.
+          </p>
+        )}
       </div>
 
       {error && <p className="text-[13px] text-[hsl(0,80%,60%)] mb-[14px]">{error}</p>}
@@ -124,9 +202,9 @@ export default function NewExamClient({ topics }: Props) {
         variant="primary"
         size="lg"
         onClick={handleCreate}
-        disabled={loading || selectedTopics.length === 0}
+        disabled={loading || selectedTopics.length === 0 || noQuestions}
       >
-        {loading ? 'Creating…' : 'Start Exam'}
+        {loading ? 'Creating…' : noQuestions ? 'No questions for this selection' : 'Start Exam'}
       </Button>
     </div>
   )

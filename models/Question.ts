@@ -8,6 +8,8 @@ export interface QuestionDocument extends Document {
   difficulty: Difficulty
   options: { label: 'A' | 'B' | 'C' | 'D'; text: string }[]
   correctAnswer: string | null
+  code: string | null          // starter/reference snippet (type 'code')
+  solutionCode: string | null  // solution revealed on demand (type 'code')
   explanation: string
   tags: string[]
   version: string | null
@@ -20,7 +22,7 @@ const QuestionSchema = new Schema<QuestionDocument>(
   {
     topicId:       { type: Schema.Types.ObjectId, ref: 'Topic', required: true, index: true },
     text:          { type: String, required: true },
-    type:          { type: String, enum: ['multiple', 'true_false', 'open'], required: true },
+    type:          { type: String, enum: ['multiple', 'true_false', 'open', 'code'], required: true },
     difficulty:    { type: String, enum: ['easy', 'medium', 'hard'], required: true },
     options: [
       {
@@ -29,6 +31,8 @@ const QuestionSchema = new Schema<QuestionDocument>(
       },
     ],
     correctAnswer: { type: String, default: null },
+    code:          { type: String, default: null },
+    solutionCode:  { type: String, default: null },
     explanation:   { type: String, required: true },
     tags:          [{ type: String }],
     version:       { type: String, default: null },

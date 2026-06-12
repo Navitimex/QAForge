@@ -31,7 +31,7 @@ export function evaluateAnswer(input: EvaluateAnswerInput): boolean | null {
 
   if (skipped) return null
 
-  if (questionType === 'open') {
+  if (questionType === 'open' || questionType === 'code') {
     if (selfRating === 'knew')   return true
     if (selfRating === 'missed') return false
     return null // partial or not yet rated

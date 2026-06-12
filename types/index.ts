@@ -3,9 +3,9 @@
 export type Role        = 'user' | 'admin'
 export type Provider    = 'google' | 'credentials'
 export type Difficulty  = 'easy' | 'medium' | 'hard'
-export type QuestionType = 'multiple' | 'true_false' | 'open'
+export type QuestionType = 'multiple' | 'true_false' | 'open' | 'code'
 export type ExamDifficulty = 'mixed' | 'easy' | 'medium' | 'hard'
-export type ExamMode    = 'exam' | 'practice'
+export type ExamMode    = 'exam' | 'practice' | 'interview' | 'code'
 export type ExamStatus  = 'active' | 'paused' | 'completed'
 export type SelfRating  = 'knew' | 'partial' | 'missed'
 
@@ -49,7 +49,9 @@ export interface IQuestion {
   type: QuestionType
   difficulty: Difficulty
   options: IQuestionOption[]        // only for type === 'multiple'
-  correctAnswer: string | null      // 'A'|'B'|'C'|'D' | 'true'|'false' | null (open)
+  correctAnswer: string | null      // 'A'|'B'|'C'|'D' | 'true'|'false' | null (open/code)
+  code: string | null               // starter/reference snippet (type 'code')
+  solutionCode: string | null       // solution code revealed on demand (type 'code')
   explanation: string
   tags: string[]
   version: string | null

@@ -139,7 +139,8 @@ qa-interview-prep/
 │
 └── scripts/
     ├── seed.ts                        ← conecta a Atlas, upsert topics, crea questions + admin
-    └── seed-data.ts                   ← 10 topics, 130+ preguntas (multiple/true_false/open)
+    ├── seed-data.ts                   ← 10 topics, ~140 preguntas (multiple/true_false/open)
+    └── seed-data-extra.ts             ← Manual QA Interview + Automation QA Interview (100 c/u) + 25 ejercicios de código
 ```
 
 ---
@@ -190,12 +191,14 @@ qa-interview-prep/
   _id: ObjectId,
   topicId: ObjectId,          // ref: Topic
   text: string,
-  type: 'multiple' | 'true_false' | 'open',
+  type: 'multiple' | 'true_false' | 'open' | 'code',
   difficulty: 'easy' | 'medium' | 'hard',
   options: [                  // solo para type === 'multiple'
     { label: 'A' | 'B' | 'C' | 'D', text: string }
   ],
-  correctAnswer: string | null, // 'A'|'B'|'C'|'D' | 'true'|'false' | null (open)
+  correctAnswer: string | null, // 'A'|'B'|'C'|'D' | 'true'|'false' | null (open/code)
+  code: string | null,          // snippet/starter (solo type 'code')
+  solutionCode: string | null,  // solución revelada bajo demanda (solo type 'code')
   explanation: string,
   tags: string[],             // ej: ["POM", "locators", "xpath"]
   version: string | null,     // ej: "Selenium 4" — para preguntas version-específicas
@@ -215,9 +218,11 @@ qa-interview-prep/
   questionIds: ObjectId[],
   size: number,               // pedido: 5–50 (Zod); almacenado puede ser menor si no hay suficientes preguntas
   difficulty: 'mixed' | 'easy' | 'medium' | 'hard',
-  mode: 'exam' | 'practice',
-  // exam     → respuestas ocultas hasta confirmar
-  // practice → puede ver respuesta en cualquier momento sin penalizar
+  mode: 'exam' | 'practice' | 'interview' | 'code',
+  // exam      → respuestas ocultas hasta confirmar
+  // practice  → puede ver respuesta en cualquier momento sin penalizar
+  // interview → solo preguntas open; responder en voz alta y autoevaluarse
+  // code      → solo ejercicios de código (type 'code') con solución oculta
   status: 'active' | 'paused' | 'completed',
   score: number | null,       // conteo bruto de correctas sobre evaluables (excluye open)
   scorableCount: number,      // cantidad de preguntas que cuentan para el score (no open)
@@ -294,6 +299,7 @@ Todas las rutas `/api/` excepto `/api/auth/` requieren sesión válida.
 |--------|------|-------------|
 | GET | `/api/topics` | Lista topics activos |
 | GET | `/api/questions?topicId=&difficulty=&search=&limit=&page=` | Lista con filtros y búsqueda full-text |
+| GET | `/api/questions/availability?topicIds=&difficulty=&mode=` | Cuenta preguntas disponibles para la selección de New Exam |
 | POST | `/api/questions` | Crear pregunta (admin) |
 | PUT | `/api/questions/[id]` | Editar pregunta (admin) |
 | DELETE | `/api/questions/[id]` | Soft delete — pone `isActive: false` (admin) |
@@ -335,7 +341,7 @@ peso = 1 + (1 - accuracy) * 2
 
 ## 7. Score — cálculo correcto
 
-El score solo considera preguntas **evaluables**: `multiple` y `true_false`.
+El score solo considera preguntas **evaluables**: `multiple` y `true_false`. Las `open` y `code` se autoevalúan (selfRating) y no puntúan.
 
 ```typescript
 scorableCount = questionIds filtradas donde type !== 'open'
@@ -632,4 +638,4 @@ Las preguntas van en `scripts/seed-data.ts`, separadas del script principal.
 
 ---
 
-*Última actualización: 2026-06-11 — revisión completa: admin movido a /admin/questions, DELETE de exámenes (cancelar), skip de preguntas, UserStats con delta incremental, AppShell compartido, helpers lib/api.ts, modo exam sin respuestas en el payload del cliente, sign out, deploy gratuito documentado en README.*
+*Última actualización: 2026-06-12 — nuevos modos interview/code, tipo de pregunta code (snippet+solución), topics Manual/Automation QA Interview (100 preguntas c/u), navegador numerado de preguntas, contador de disponibilidad en New Exam. Anterior: 2026-06-11 — revisión completa: admin movido a /admin/questions, DELETE de exámenes (cancelar), skip de preguntas, UserStats con delta incremental, AppShell compartido, helpers lib/api.ts, modo exam sin respuestas en el payload del cliente, sign out, deploy gratuito documentado en README.*

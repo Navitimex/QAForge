@@ -27,7 +27,7 @@ const ExamSchema = new Schema<ExamDocument>(
     // smaller when fewer questions are available than requested.
     size:        { type: Number, required: true, min: 1 },
     difficulty:  { type: String, enum: ['mixed', 'easy', 'medium', 'hard'], required: true },
-    mode:        { type: String, enum: ['exam', 'practice'], required: true },
+    mode:        { type: String, enum: ['exam', 'practice', 'interview', 'code'], required: true },
     status:      { type: String, enum: ['active', 'paused', 'completed'], default: 'active' },
     score:       { type: Number, default: null },
     scorableCount: { type: Number, required: true },

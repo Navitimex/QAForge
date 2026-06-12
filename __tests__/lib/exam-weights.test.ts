@@ -13,6 +13,8 @@ function makeQ(id: string, topicId: string, type = 'multiple'): IQuestion {
     difficulty:    'easy',
     options:       [],
     correctAnswer: 'A',
+    code:          null,
+    solutionCode:  null,
     explanation:   '',
     tags:          [],
     version:       null,

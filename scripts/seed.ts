@@ -13,6 +13,7 @@ import { config } from 'dotenv'
 config({ path: '.env.local' })
 
 import { TOPICS_DATA, QUESTIONS_DATA } from './seed-data'
+import { EXTRA_TOPICS, EXTRA_QUESTIONS } from './seed-data-extra'
 
 // Import models directly to avoid Next.js module resolution issues
 import Topic from '../models/Topic'
@@ -42,7 +43,8 @@ async function seed() {
   console.log('\n📚  Seeding topics...')
   const topicMap = new Map<string, mongoose.Types.ObjectId>()
 
-  for (const t of TOPICS_DATA) {
+  const allTopics = [...TOPICS_DATA, ...EXTRA_TOPICS]
+  for (const t of allTopics) {
     const doc = await Topic.findOneAndUpdate(
       { slug: t.slug },
       { $setOnInsert: t },
@@ -57,7 +59,8 @@ async function seed() {
   let inserted = 0
   let skipped = 0
 
-  for (const q of QUESTIONS_DATA) {
+  const allQuestions = [...QUESTIONS_DATA, ...EXTRA_QUESTIONS]
+  for (const q of allQuestions) {
     const topicId = topicMap.get(q.topicSlug)
     if (!topicId) {
       console.warn(`   ⚠  Unknown topicSlug: ${q.topicSlug}`)
@@ -78,6 +81,8 @@ async function seed() {
       difficulty:    q.difficulty,
       options:       q.options || [],
       correctAnswer: q.correctAnswer,
+      code:          ('code' in q ? q.code : null) ?? null,
+      solutionCode:  ('solutionCode' in q ? q.solutionCode : null) ?? null,
       explanation:   q.explanation,
       tags:          q.tags || [],
       version:       q.version,

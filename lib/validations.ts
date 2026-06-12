@@ -19,7 +19,7 @@ export const CreateExamSchema = z.object({
   topicIds:   z.array(ObjectIdSchema).min(1, 'Select at least one topic'),
   size:       z.number().int().min(5).max(50),
   difficulty: z.enum(['mixed', 'easy', 'medium', 'hard']),
-  mode:       z.enum(['exam', 'practice']),
+  mode:       z.enum(['exam', 'practice', 'interview', 'code']),
 })
 
 export type CreateExamInput = z.infer<typeof CreateExamSchema>
@@ -50,10 +50,12 @@ const QuestionOptionSchema = z.object({
 export const CreateQuestionSchema = z.object({
   topicId:       ObjectIdSchema,
   text:          z.string().min(5, 'Question text must be at least 5 characters'),
-  type:          z.enum(['multiple', 'true_false', 'open']),
+  type:          z.enum(['multiple', 'true_false', 'open', 'code']),
   difficulty:    z.enum(['easy', 'medium', 'hard']),
   options:       z.array(QuestionOptionSchema).optional().default([]),
   correctAnswer: z.string().nullable().optional(),
+  code:          z.string().nullable().optional().default(null),
+  solutionCode:  z.string().nullable().optional().default(null),
   explanation:   z.string().min(10, 'Explanation must be at least 10 characters'),
   tags:          z.array(z.string()).optional().default([]),
   version:       z.string().nullable().optional().default(null),
@@ -80,10 +82,12 @@ export type CreateQuestionInput = z.infer<typeof CreateQuestionSchema>
 export const ImportQuestionSchema = z.object({
   topicSlug:     z.string().min(1),
   text:          z.string().min(5),
-  type:          z.enum(['multiple', 'true_false', 'open']),
+  type:          z.enum(['multiple', 'true_false', 'open', 'code']),
   difficulty:    z.enum(['easy', 'medium', 'hard']),
   options:       z.array(QuestionOptionSchema).optional().default([]),
   correctAnswer: z.string().nullable().optional(),
+  code:          z.string().nullable().optional().default(null),
+  solutionCode:  z.string().nullable().optional().default(null),
   explanation:   z.string().min(10),
   tags:          z.array(z.string()).optional().default([]),
   version:       z.string().nullable().optional().default(null),

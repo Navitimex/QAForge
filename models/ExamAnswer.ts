@@ -21,7 +21,7 @@ const ExamAnswerSchema = new Schema<ExamAnswerDocument>(
     userId:          { type: Schema.Types.ObjectId, ref: 'User',     required: true, index: true },
     questionId:      { type: Schema.Types.ObjectId, ref: 'Question', required: true },
     topicId:         { type: Schema.Types.ObjectId, ref: 'Topic',    required: true, index: true },
-    questionType:    { type: String, enum: ['multiple', 'true_false', 'open'], required: true },
+    questionType:    { type: String, enum: ['multiple', 'true_false', 'open', 'code'], required: true },
     userAnswer:      { type: String, default: null },
     isCorrect:       { type: Boolean, default: null },
     selfRating:      { type: String, enum: ['knew', 'partial', 'missed', null], default: null },

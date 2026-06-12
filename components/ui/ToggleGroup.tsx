@@ -4,6 +4,7 @@ export interface ToggleOption {
   id: string
   label: string
   color?: string
+  disabled?: boolean
 }
 
 interface ToggleGroupProps {
@@ -29,10 +30,12 @@ export default function ToggleGroup({ options, value, onChange, className }: Tog
         return (
           <button
             key={opt.id}
-            onClick={() => onChange(opt.id)}
+            onClick={() => !opt.disabled && onChange(opt.id)}
+            disabled={opt.disabled}
             className={cn(
               'flex-1 py-2.5 text-[13px] font-[inherit] rounded-btn border cursor-pointer',
               'transition-all duration-[120ms]',
+              'disabled:opacity-[0.35] disabled:cursor-not-allowed',
               !opt.color && isSelected  && 'border-accent bg-accent/[0.10] text-accent font-semibold',
               !opt.color && !isSelected && 'border-border bg-card text-text-2',
             )}
