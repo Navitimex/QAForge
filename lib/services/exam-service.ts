@@ -16,7 +16,8 @@ export const SCORABLE_TYPES = ['multiple', 'true_false'] as const
  * - difficulty 'mixed' → all difficulty levels
  * - mode 'interview'   → open questions only (spoken-answer practice)
  * - mode 'code'        → coding exercises only
- * - mode exam/practice → regular question types (code exercises excluded)
+ * - mode 'exam'        → scorable types only (multiple/true_false) — no open questions
+ * - mode 'practice'    → multiple/true_false/open (code exercises excluded)
  */
 export function buildQuestionFilter(
   topicIds: string[],
@@ -34,6 +35,8 @@ export function buildQuestionFilter(
     filter.type = 'open'
   } else if (mode === 'code') {
     filter.type = 'code'
+  } else if (mode === 'exam') {
+    filter.type = { $in: [...SCORABLE_TYPES] }
   } else {
     filter.type = { $in: ['multiple', 'true_false', 'open'] }
   }

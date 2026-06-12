@@ -92,8 +92,11 @@ describe('buildQuestionFilter', () => {
     expect(buildQuestionFilter(['t1'], 'mixed', 'code').type).toBe('code')
   })
 
-  it('practice/exam modes exclude code exercises', () => {
+  it('practice mode excludes code exercises but includes open', () => {
     expect(buildQuestionFilter(['t1'], 'mixed', 'practice').type).toEqual({ $in: ['multiple', 'true_false', 'open'] })
-    expect(buildQuestionFilter(['t1'], 'mixed', 'exam').type).toEqual({ $in: ['multiple', 'true_false', 'open'] })
+  })
+
+  it('exam mode only includes scorable types (no open, no code)', () => {
+    expect(buildQuestionFilter(['t1'], 'mixed', 'exam').type).toEqual({ $in: ['multiple', 'true_false'] })
   })
 })
