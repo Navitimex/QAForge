@@ -14,6 +14,7 @@ config({ path: '.env.local' })
 
 import { TOPICS_DATA, QUESTIONS_DATA } from './seed-data'
 import { EXTRA_TOPICS, EXTRA_QUESTIONS } from './seed-data-extra'
+import { VOLUME_QUESTIONS } from './seed-data-volume'
 
 // Import models directly to avoid Next.js module resolution issues
 import Topic from '../models/Topic'
@@ -59,7 +60,7 @@ async function seed() {
   let inserted = 0
   let skipped = 0
 
-  const allQuestions = [...QUESTIONS_DATA, ...EXTRA_QUESTIONS]
+  const allQuestions = [...QUESTIONS_DATA, ...EXTRA_QUESTIONS, ...VOLUME_QUESTIONS]
   for (const q of allQuestions) {
     const topicId = topicMap.get(q.topicSlug)
     if (!topicId) {
